@@ -6,7 +6,7 @@ import tempfile
 import tabulate
 import statistics
 from pathlib import Path
-from eval_utils import get_apertium_analyses, split_X_y
+from eval_utils import get_apertium_analyses, split_X_y, stream_parser_split_X_y
 
 def get_sorted_files_in_directory(dir):
 	return sorted(os.listdir(dir))
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 		test_corpus = str(Path(args.input_directory, testing_corpus))
 
 		with open(test_corpus, 'r') as f:
-			X, y = split_X_y(f.readlines())
+			X, y = stream_parser_split_X_y(f.readlines())
 			pred = get_apertium_analyses(X, Path(args.apertium_bins, bin_file), base_dir)
 			assert(len(y) == len(pred)), 'Target and Predicted vectors size mismatch ({}!={})'.format(len(y), len(pred))
 			metrics_dict = {}
