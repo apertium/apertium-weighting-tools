@@ -5,35 +5,39 @@ import subprocess
 from pathlib import Path
 
 def get_apertium_analyses(X, weighted_bin, base_dir, only_one_analysis=True):
-    #TODO: WHY DOES ADDING A DOT WORK AS A SEPARATOR?
-    joined_X = ' .\n'.join([x for x in X + ['\n']])
+    joined_X = ' \n'.join(X)
 
     base_input_as_file = str(Path(base_dir, 'base_input_as_file'))
     with open(base_input_as_file, 'w') as f:
         f.write(joined_X)
 
-    deformatted_input = str(Path(base_dir, 'formatted_input'))
+    deformatted_input = str(Path(base_dir, 'deformatted_input'))
     assert(subprocess.run(['apertium-destxt', '-n', base_input_as_file, deformatted_input]).returncode == 0)
 
-    analysed_output = str(Path(base_dir, 'analysis_output'))
-    reformatted_output = str(Path(base_dir, 'reformatted_output'))
-    # TODO: Is cleaning the reformatted output file needed?
+    with open(deformatted_input, 'r') as f:
+        lines = f.readlines()
 
-    processing_command = ['lt-proc', weighted_bin, deformatted_input, analysed_output]
+    # Separate the tokens using [] to avoid multi-word analysis
+    tokenized_input = str(Path(base_dir, 'tokenized_input'))
+    with open(tokenized_input, 'w') as f:
+        f.write(''.join([re.sub('\[ \n$', ' [] [\n', t) for t in lines]))
+
+    analyzed_output = str(Path(base_dir, 'analyzed_output'))
+
+    processing_command = ['lt-proc', weighted_bin, tokenized_input, analysed_output]
     if only_one_analysis:
     	processing_command.append('-N 1')
 
-    subprocess.run(processing_command)
+    assert(subprocess.run(processing_command).returncode == 0)
+
+    reformatted_output = str(Path(base_dir, 'reformatted_output'))
     subprocess.run(['apertium-retxt', analysed_output, reformatted_output])
 
     with open(reformatted_output, 'r') as f:
-    	analyses = [a.strip() for a in f.readlines() if a.strip()]
-    if only_one_analysis:
-	    return [analysis[analysis.find('/') + 1: analysis.find('$')]
-	            for analysis in analyses]
-    else:
-        return [analysis.strip('$').split('/')[1:]
-                for analysis in analyses]
+        # Just read the lines and let stream parser do the job
+        lines = f.readlines()
+
+    return [stream_parser_extract_analyses(l) for l in lines]
 
 def split_X_y(file_lines):
     '^With/with<pr>$'
@@ -45,3 +49,17 @@ def split_X_y(file_lines):
     assert(len(tokens)==len(targets)), 'Token and Target vectors size mismatch ({}!={})'.format(len(tokens), len(targets))
 
     return tokens, targets
+
+from streamparser import parse, reading_to_string
+def stream_parser_split_X_y(file_lines):
+    lexical_units = parse('\n'.join(file_lines))
+    X = []
+    y = []
+    for lexical_unit in lexical_units:
+        y.append(reading_to_string(lexical_unit.readings[0]))
+        X.append(lexical_unit.wordform)
+    return X, y
+
+def stream_parser_extract_analyses(line):
+    unit = [unit for unit in parse(line)][0]
+    return [reading_to_string(reading) for reading in unit.readings]
