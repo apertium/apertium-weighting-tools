@@ -66,7 +66,7 @@ hfst-reweight -i "$HFST_FST" -o "$WEIGHTED_FST" -a 1
 hfst-fst2txt -i "$WEIGHTED_FST" -o "$WEIGHTED_ATTFST"
 
 # Compile the FST back using lttoolbox
-../lttoolbox/lt-comp lr "$WEIGHTED_ATTFST" "$OUTPUT_FST"
+lt-comp lr "$WEIGHTED_ATTFST" "$OUTPUT_FST"
 
 # Delete the temporary files
 rm -rf "$TEMP_DIR"
