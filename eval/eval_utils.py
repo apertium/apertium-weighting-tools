@@ -21,23 +21,27 @@ def get_apertium_analyses(X, weighted_bin, base_dir, only_one_analysis=True):
     tokenized_input = str(Path(base_dir, 'tokenized_input'))
     with open(tokenized_input, 'w') as f:
         f.write(''.join([re.sub('\[ \n$', ' [] [\n', t) for t in lines]))
+        f.write('\n')
 
     analyzed_output = str(Path(base_dir, 'analyzed_output'))
 
-    processing_command = ['lt-proc', weighted_bin, tokenized_input, analysed_output]
+    processing_command = ['lt-proc', weighted_bin, tokenized_input, analyzed_output]
     if only_one_analysis:
     	processing_command.append('-N 1')
 
     assert(subprocess.run(processing_command).returncode == 0)
 
     reformatted_output = str(Path(base_dir, 'reformatted_output'))
-    subprocess.run(['apertium-retxt', analysed_output, reformatted_output])
+    subprocess.run(['apertium-retxt', analyzed_output, reformatted_output])
 
     with open(reformatted_output, 'r') as f:
         # Just read the lines and let stream parser do the job
         lines = f.readlines()
 
-    return [stream_parser_extract_analyses(l) for l in lines]
+    analyses = [stream_parser_extract_analyses(l) for l in lines]
+    if only_one_analysis:
+    	return [a[0] for a in analyses]
+    return analyses
 
 def split_X_y(file_lines):
     '^With/with<pr>$'
@@ -58,8 +62,16 @@ def stream_parser_split_X_y(file_lines):
     for lexical_unit in lexical_units:
         y.append(reading_to_string(lexical_unit.readings[0]))
         X.append(lexical_unit.wordform)
+    assert(len(y)==len(X)), 'Token and Target vectors size mismatch ({}!={})'.format(len(y), len(X))
     return X, y
 
 def stream_parser_extract_analyses(line):
-    unit = [unit for unit in parse(line)][0]
-    return [reading_to_string(reading) for reading in unit.readings]
+    unit = [unit for unit in parse(line)]
+	# TODO: Handle cases such as "Empty readings for ///<sent>" in a better way
+    if not unit:
+    	return ['']
+    unit = unit[0]
+
+    # Is the "///<sent>" really handeled?
+    analyses = [reading_to_string(reading) for reading in unit.readings]
+    return analyses if len(analyses) else ['']
