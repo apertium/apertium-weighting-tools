@@ -1,0 +1,86 @@
+#!/bin/sh
+
+usage="$(basename "$0"): generate a disambiguated weightlist using a bpe model
+USAGE: $(basename "$0") [-h] corpus input_fst no_of_bpe_merges output_weightlist default_weightlist
+corpus	a raw corpus file
+# corpus_bpe  TODO: DO I NEED THIS
+input_fst	the input compiled dictionary (a finite state transducer)
+no_of_bpe_merges	the number of merges that will be applied in bpe
+output_weightlist	a weightlist for unambiguous words in corpus
+default_weightlist	a laplace smoothed weightlist for OOV words
+
+Options:
+    -h, --help:	show this help
+"
+
+while :; do
+    case $1 in
+        -h|-\?|--help)
+            printf "$usage"
+            exit
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -?*)
+            printf "WARN: Unknown option (ignored): %s\n" "$1" >&2
+            ;;
+        *)
+            break
+    esac
+
+    shift
+done
+
+CORPUS=$1
+INPUT_FST=$2
+NO_OF_BPE_MERGES=$3
+OUTPUT_WEIGHTLIST=$4
+DEFAULT_WEIGHTLIST=$5
+
+no_of_missing_args=0
+if [ ! -f "$CORPUS" ]
+then
+	printf "ERROR: corpus file \"%s\" doesn't exist\n" "$CORPUS" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ ! -f "$INPUT_FST" ]
+then
+	printf "ERROR: input_fst \"%s\" doesn't exist\n" "$INPUT_FST" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ -z "$NO_OF_BPE_MERGES" ]
+then
+	printf "ERROR: no_of_bpe_merges isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ -z "$OUTPUT_WEIGHTLIST" ]
+then
+	printf "ERROR: output_weightlist isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ -z "$DEFAULT_WEIGHTLIST" ]
+then
+	printf "ERROR: default_weightlist isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ $no_of_missing_args -gt 0 ]
+then
+	printf "$usage"
+	exit
+fi
+
+TEMP_DIR=$(mktemp -d)
+BPE_CODES_FILE="$TEMP_DIR/codes"
+BPE_SEGMENTED_FILE="$TEMP_DIR/segments"
+
+# TODO: Make sure corpus is tokenized using linebreaks
+subword-nmt learn-bpe -s "$NO_OF_BPE_MERGES" < "$CORPUS" > "$BPE_CODES_FILE"
+subword-nmt apply-bpe -c "$BPE_CODES_FILE" < "$CORPUS" > "$BPE_SEGMENTED_FILE"
+./utils/bpe_generate_weights.py --words_file "$CORPUS" --segmented_file "$BPE_SEGMENTED_FILE" --compiled_dict "$INPUT_FST" --output_weightlist "$OUTPUT_WEIGHTLIST" --default_weightlist "$DEFAULT_WEIGHTLIST"
