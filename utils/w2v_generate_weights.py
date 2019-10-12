@@ -2,6 +2,7 @@
 
 import sys
 import math
+import argparse
 from collections import Counter
 from utils import extract_tag_from_analysis, generate_regex
 
@@ -54,10 +55,10 @@ if __name__ == '__main__':
 						help='The weightlist containing a laplace smoothed weight')
 	args = parser.parse_args()
 	words_file = args.words_file
-	similar_words_file = args.similar_words_file
+	similar_words_file = args.similar_file
 	output_weightlist = args.output_weightlist
 	default_weightlist = args.default_weightlist
-	
+
 	words = [[l.strip()] for l in words_file.readlines() if l.strip()]
 	similar_words = [l.strip().split() for l in similar_words_file.readlines() if l.strip()]
 
@@ -66,9 +67,8 @@ if __name__ == '__main__':
 	counts = sum(weights, Counter())
 	sum_counts = sum(counts.values()) + len(counts) + 1
 
-	with open(output_weightlist, 'w') as f:
-		for t in counts:
-			f.write('{}::{}\n'.format(t, -math.log((1 + counts[t]) / sum_counts )))
-	
-	with open(default_weightlist, 'w') as f:
-		f.write('[?*]::{}'.format(-math.log(1 / sum_counts)))
+	for t in counts:
+		output_weightlist.write('{}::{}\n'.format(t, -math.log((1 + counts[t]) / sum_counts )))
+
+	# with open(default_weightlist, 'w') as f:
+	default_weightlist.write('[?*]::{}'.format(-math.log(1 / sum_counts)))

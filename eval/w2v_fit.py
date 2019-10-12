@@ -13,6 +13,8 @@ if __name__ == '__main__':
 						help='input directory of the n folds')
 	parser.add_argument('-b', '--apertium_bin', required=True,
 						help='a compiled dictionary')
+	parser.add_argument('-corpus_w2v', required=True,
+						help='an untagged corpus')
 	parser.add_argument('-corpus', required=True,
 						help='an untagged corpus')
 	parser.add_argument('-o', '--output_directory', required=True,
@@ -22,6 +24,7 @@ if __name__ == '__main__':
 	output_directory = args.output_directory
 	apertium_bin = args.apertium_bin
 	corpus = args.corpus
+	corpus_w2v = args.corpus_w2v
 	if not os.path.exists(output_directory):
 		os.mkdir(output_directory)
 
@@ -30,7 +33,7 @@ if __name__ == '__main__':
 	temp_weightlist = Path(temp_dir, 'temp_weightlist')
 	default_weightlist = Path(temp_dir, 'temp_default_weightlist')
 	subprocess.run(['./w2v-weightlist',
-		corpus, apertium_bin, temp_weightlist, default_weightlist])
+		corpus, corpus_w2v, apertium_bin, temp_weightlist, default_weightlist])
 
 	for input_file in sorted(os.listdir(input_directory)):
 		# Generate a bin file
