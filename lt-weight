@@ -95,7 +95,7 @@ do
 	hfst-regexp2fst -j -i "$regexp_file" -o "$WEIGHTED_FST"
 
 	# Compose the input FST and the weighted regexp FST
-	hfst-compose -1 "$HFST_FST" -2 "$WEIGHTED_FST" -v -o "$COMPOSED_FST"
+	hfst-compose -1 "$HFST_FST" -2 "$WEIGHTED_FST" -o "$COMPOSED_FST"
 
 	if [ -f "$MINIMIZED_FST" ]; then
 		# This weightlist need to be applied only to unweighted parts
