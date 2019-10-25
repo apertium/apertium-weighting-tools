@@ -13,18 +13,21 @@ if __name__ == '__main__':
 						help='input directory of the n folds')
 	parser.add_argument('-b', '--apertium_bin', required=True,
 						help='a compiled dictionary')
-	parser.add_argument('-corpus_w2v', required=True,
-						help='an untagged corpus')
 	parser.add_argument('-corpus', required=True,
-						help='an untagged corpus')
+						help='an untagged corpus for generating a weightlist')
+	parser.add_argument('-corpus_word2vec', required=True,
+						help='an large untagged corpus for training the word2vec model')
 	parser.add_argument('-o', '--output_directory', required=True,
 						help='output directory for weighted dictionaries')
+	parser.add_argument('--word2vec_model', help='a pretrained word2vec model')
+
 	args = parser.parse_args()
 	input_directory = args.input_directory
 	output_directory = args.output_directory
 	apertium_bin = args.apertium_bin
 	corpus = args.corpus
-	corpus_w2v = args.corpus_w2v
+	corpus_word2vec = args.corpus_word2vec
+	word2vec_model = args.word2vec_model
 	if not os.path.exists(output_directory):
 		os.mkdir(output_directory)
 
@@ -32,8 +35,10 @@ if __name__ == '__main__':
 
 	temp_weightlist = Path(temp_dir, 'temp_weightlist')
 	default_weightlist = Path(temp_dir, 'temp_default_weightlist')
+
+	# Train a word2vec model and generate the weightlist using the corpus file
 	subprocess.run(['./w2v-weightlist',
-		corpus, corpus_w2v, apertium_bin, temp_weightlist, default_weightlist])
+		corpus, corpus_word2vec, apertium_bin, word2vec_model, temp_weightlist, default_weightlist])
 
 	for input_file in sorted(os.listdir(input_directory)):
 		# Generate a bin file
