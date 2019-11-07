@@ -6,7 +6,13 @@ from collections import Counter
 from utils.utils import extract_analysis, generate_regex, extract_tag_from_analysis
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='generate a regex weightlist given an annotated corpus')
+	DESCRIPTION = '''generate a regex weightlist given an annotated corpus.'''
+	EPILOG = '''If the three weightlists are used then the analyses will be prioritized according to:
+				The unigram counts of analyses found in the tagged corpus, 
+				The number of times the tag of an unweighted analyses was found in the tagged corpus,
+				Laplace smoothed weight for remaining unweighted analyses.
+				'''
+	parser = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
 	parser.add_argument('tagged_corpus',
 						type=argparse.FileType('r'),
 						help='input tagged corpus')
@@ -28,17 +34,24 @@ if __name__ == '__main__':
 
 	lines = TAGGED_CORPUS.readlines()
 	analyses = [extract_analysis(line.strip()) for line in lines]
+	# Find the counts of each analysis
 	regex_analyses = Counter([generate_regex(analysis) for analysis in analyses if not analysis.startswith('*')])
+	# Use the den and num_offset according to the desired weightlists
 	den = sum(regex_analyses.values())
 	num_offset = 0
 
 	if TAG_WEIGHTLIST_FILE:
+		# Use the tags counts to disambiguate unweighthed analyses
 		tags = [extract_tag_from_analysis(line.strip()) for line in lines]
 		regex_tags = Counter([generate_regex(tag, match_all_prefixes=True) for tag in tags if tag and not tag.startswith('*')])
+		# Adjust the numerator and denominator such that the weights
+		# are larger than those of the analyses unigram counts
 		den += sum(regex_tags.values()) * (1+len(regex_analyses))
+		# Todo: Is this equivalent to the size of the corpus?
 		num_offset += sum(regex_tags.values())
 
 	if DEFAULT_WEIGHTLIST_FILE:
+		# Apply laplace smoothing to weight analyses not found in the corpus
 		den += 1 + len(regex_analyses)
 		if TAG_WEIGHTLIST_FILE:
 			den += len(regex_tags)
