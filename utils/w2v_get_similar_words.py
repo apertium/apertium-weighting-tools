@@ -1,35 +1,17 @@
 #!/usr/bin/env python3
 
 import os
-import re
 import sys
 import tqdm
 import gensim
 import string
 import argparse
+from w2v_utils import Dataset
 
-def clean_word(word):
-	return re.sub('[^a-z \u0400-\u04FF]', ' ', word)
-	# return re.sub(r'[0-9]', ' ', word)
-
-class Dataset:
-	"""
-	Wrap corpus for avoiding complete loading of file into memory
-	"""
-	def __init__(self, file):
-		self.corpus_file = file
-
-	def __iter__(self):
-		self.corpus_file.seek(0)
-		for line in self.corpus_file:
-			words = line.split()
-			# If the sentence is too long then divide it
-			# into segments of 1000 words each until the
-			# sentence is completely consumed
-			i = 0
-			while i < len(words):
-				i+=1000
-				yield words[i-1000:i]
+def get_naive_similar(word, word2vec):
+	if not word in word2vec.wv.vocab:
+		return []
+	return [t[0] for t in word2vec.most_similar(word)]
 
 def get_similar_tokens(context, word2vec):
 	""" Find the most probable words given bag of context words
@@ -49,10 +31,6 @@ if __name__ == '__main__':
 						type=argparse.FileType('r'),
 						required=True,
 						help='large raw corpus file')
-	parser.add_argument('--corpus_w2v',
-						type=argparse.FileType('r'),
-						required=True,
-						help='large raw corpus file')
 	parser.add_argument('--output_words_file',
 						type=argparse.FileType('w'),
 						required=True,
@@ -61,31 +39,20 @@ if __name__ == '__main__':
 						type=argparse.FileType('w'),
 						required=True,
 						help='The set of similar words for the words of the corpus, tab-delimited')
+	parser.add_argument('--word2vec_model', help='a pretrained word2vec model')
+	parser.add_argument('--use_google_model', action='store_true', help='use google news pretrained word2vec model')
 	args = parser.parse_args()
 	corpus_file = args.corpus
-	corpus_file_w2v = args.corpus_w2v
 	output_words_file = args.output_words_file
 	output_similar_words_file = args.output_similar_words_file
-
-	import logging  # Setting up the loggings to monitor gensim
-	logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt= '%H:%M:%S', level=logging.INFO)
-
-	word2vec_file = 'word2vec.model'
-	if word2vec_file in os.listdir('.'):
-		word2vec = Word2Vec.load(word2vec_file)
+	word2vec_model = args.word2vec_model
+	use_google_model = args.use_google_model
+	if use_google_model:
+		import gensim.downloader as api
+		word2vec = api.load("word2vec-google-news-300")
 	else:
-		word2vec = gensim.models.word2vec.Word2Vec(min_count=20,
-			window=2,
-			size=300,
-			sample=6e-5,
-			alpha=0.03,
-			min_alpha=0.0007,
-			negative=20,
-			workers=4)
+		word2vec = gensim.models.word2vec.Word2Vec.load(word2vec_model)
 
-		word2vec.build_vocab(Dataset(corpus_file_w2v), progress_per=50000)
-		word2vec.train(Dataset(corpus_file_w2v), total_examples=word2vec.corpus_count, epochs=50, report_delay=1)
-		word2vec.save(word2vec_file)
 	window_size = 2
 	for line in tqdm.tqdm(Dataset(corpus_file)):
 		words = line
@@ -95,7 +62,7 @@ if __name__ == '__main__':
 			if not center_word or not all(gram):
 				continue
 
-			similar_words = get_similar_tokens(gram, word2vec)
+			similar_words = get_naive_similar(center_word, word2vec)
 			if not similar_words:
 				continue
 			output_words_file.write(center_word + '\n')

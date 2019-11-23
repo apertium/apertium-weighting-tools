@@ -82,16 +82,13 @@ TEMP_DIR=$(mktemp -d)
 WORD_FILE="$TEMP_DIR/word"
 SIMILAR_WORD_FILE="$TEMP_DIR/similar"
 
-# TODO: REMOVE THIS AFTER REFACTORING
-
-# #Initialize pythonhashseed for word2vec reproducilibilty
-# PYTHONHASHSEED=42  ./utils/w2v_get_similar_words.py --corpus "$CORPUS" --corpus_w2v "$CORPUS_W2V" --output_words_file "$WORD_FILE" --output_similar_words_file "$SIMILAR_WORD_FILE" --word2vec_model "$WORD2VEC_MODEL"
-if [ -z "$WORD2VEC_MODEL" ]
+if [ ! -f "$WORD2VEC_MODEL" ]
 then
     echo "Training a word2vec model"
+    #Initialize pythonhashseed for word2vec reproducilibilty
     PYTHONHASHSEED=42  ./utils/w2v_train_model.py --corpus_word2vec "$CORPUS_W2V" --word2vec_model "$WORD2VEC_MODEL"
 fi
-./utils/w2v_get_similar_words_refactored.py --corpus "$CORPUS" --output_words_file "$WORD_FILE" --output_similar_words_file "$SIMILAR_WORD_FILE" --word2vec_model "$WORD2VEC_MODEL"
+./utils/w2v_get_similar_words.py --corpus "$CORPUS" --output_words_file "$WORD_FILE" --output_similar_words_file "$SIMILAR_WORD_FILE" --word2vec_model "$WORD2VEC_MODEL"
 
 ANALYZED_WORDS="$TEMP_DIR/analyzed_words"
 ANALYZED_SIMILAR_WORDS="$TEMP_DIR/analyzed_similar_words"

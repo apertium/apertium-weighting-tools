@@ -15,24 +15,31 @@ def get_weight(word_a, similar_a):
 	similar_a: The similar word analyses (list of strings)
 	"""
 
-	# TODO: Pass a string instead of a list of size 1
-	word_a = [analysis.strip('$').split('/')[1:]
-		for analysis in word_a if analysis][0]
+	# TODO: Use streamparser?
+	# A list of the word's analyses
+	word_a = word_a.strip('$').split('/')[1:]
+
+	# A list of lists for the similar words' analyses
 	similar_a = [analysis.strip('$').split('/')[1:]
-		for analysis in similar_a if analysis]
-	if not word_a:
+		for analysis in similar_a]
+
+	# TODO: Can word_a be None?
+	# Ignore the token if it doesn't have an analysis *token
+	if not word_a or word_a[0].startswith('*'):
 		return None
 
-	if word_a[0].startswith('*'):
-		return None
-
+	# The word isn't ambiguous
 	if len(word_a) == 1:
 		return Counter({generate_regex(word_a[0]):1})
 
+	# TODO: Use all the analyses??
+	unambig_analyses = sum(similar_a, [])
+
 	unambig_analyses = [a[0] for a in similar_a if len(a)==1 and not a[0].startswith('*')]
 	tags = [extract_tag_from_analysis(word_analysis) for word_analysis in unambig_analyses]
+	
+	# Update this formula for having some weighting effect
 	tags_count = Counter(tags)
-
 	return Counter({generate_regex(analysis): tags_count[extract_tag_from_analysis(analysis)] for analysis in word_a})
 
 if __name__ == '__main__':
@@ -40,11 +47,11 @@ if __name__ == '__main__':
 	parser.add_argument('--words_file',
 						type=argparse.FileType('r'),
 						required=True,
-						help='words file')
+						help='analyzed words file')
 	parser.add_argument('--similar_file',
 						type=argparse.FileType('r'),
 						required=True,
-						help='similar words file (each line in tab-delimited)')
+						help='analyzed similar words file (each line in tab-separated)')
 	parser.add_argument('--output_weightlist',
 						type=argparse.FileType('w'),
 						required=True,
@@ -59,16 +66,21 @@ if __name__ == '__main__':
 	output_weightlist = args.output_weightlist
 	default_weightlist = args.default_weightlist
 
-	words = [[l.strip()] for l in words_file.readlines() if l.strip()]
-	similar_words = [l.strip().split() for l in similar_words_file.readlines() if l.strip()]
+	words_analyses = [l.strip() for l in words_file.readlines() if l.strip()]
 
-	weights = [get_weight(w, s) for w, s in zip(words, similar_words)]
+	# Split the similar words analyses
+	similar_words_analyses = [l.strip().split('\t') for l in similar_words_file.readlines() if l.strip()]
+
+	# Find the list of Counters for each word
+	weights = [get_weight(w, s) for w, s in zip(words_analyses, similar_words_analyses)]
 	weights = [w for w in weights if w]
-	counts = sum(weights, Counter())
-	sum_counts = sum(counts.values()) + len(counts) + 1
 
-	for t in counts:
-		output_weightlist.write('{}::{}\n'.format(t, -math.log((1 + counts[t]) / sum_counts )))
+	# Merge the list of Counters
+	words_weights = sum(weights, Counter())
+	
+	# Compute the value of the denominator
+	denominator = sum(words_weights.values()) + len(words_weights) + 1
+	for t in words_weights:
+		output_weightlist.write('{}::{}\n'.format(t, -math.log((1 + words_weights[t]) / denominator)))
 
-	# with open(default_weightlist, 'w') as f:
-	default_weightlist.write('[?*]::{}'.format(-math.log(1 / sum_counts)))
+	default_weightlist.write('[?*]::{}'.format(-math.log(1 / denominator)))
