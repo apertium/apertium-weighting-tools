@@ -6,29 +6,29 @@ from collections import Counter
 from utils.utils import extract_analysis, generate_regex, extract_tag_from_analysis
 
 if __name__ == '__main__':
-	DESCRIPTION = '''generate a regex weightlist given an annotated corpus.'''
+	DESCRIPTION = '''generate a regex weightlist given an annotated corpus'''
 	EPILOG = '''If the three weightlists are used then the analyses will be prioritized according to:
-				The unigram counts of analyses found in the tagged corpus, 
+				The unigram counts of analyses found in the tagged corpus,
 				The number of times the tag of an unweighted analyses was found in the tagged corpus,
 				Laplace smoothed weight for remaining unweighted analyses.
 				'''
 	parser = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
-	parser.add_argument('tagged_corpus',
+	parser.add_argument('TAGGED_CORPUS',
 						type=argparse.FileType('r'),
 						help='input tagged corpus')
-	parser.add_argument('analysis_weightlist',
+	parser.add_argument('ANALYSIS_WEIGHTLIST',
 						type=argparse.FileType('w'),
-						help='weightlist for specific analyses')
+						help='output weightlist for specific analyses')
 	parser.add_argument('--tag_weightlist',
 						type=argparse.FileType('w'),
-						help='weightlist for specific tags')
+						help='output weightlist for specific tags')
 	parser.add_argument('--default_weightlist',
 						type=argparse.FileType('w'),
-						help='weightlist for out-of-corpus tokens')
+						help='output weightlist for out-of-corpus analyses')
 
 	args = parser.parse_args()
-	TAGGED_CORPUS = args.tagged_corpus
-	ANALYSIS_WEIGHTLIST_FILE = args.analysis_weightlist
+	TAGGED_CORPUS = args.TAGGED_CORPUS
+	ANALYSIS_WEIGHTLIST_FILE = args.ANALYSIS_WEIGHTLIST
 	TAG_WEIGHTLIST_FILE = args.tag_weightlist
 	DEFAULT_WEIGHTLIST_FILE = args.default_weightlist
 

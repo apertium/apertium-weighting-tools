@@ -1,12 +1,15 @@
 #! /bin/sh
 
-usage="$(basename "$0"): weight a dictionary file using multiple regexp weightlists sequentially
-USAGE: $(basename "$0") [-h] input_file output_file weighted_regexp_files
-input_file	the input compiled dictionary (a finite state transducer)
-output_file	the weighted dictionary (a finite state transducer)
-weighted_regexp_files	the weighted weightlists in XEROX regexp format
+usage="usage: $(basename "$0") [-h] INPUT_FILE OUTPUT_FILE WEIGHTED_REGEXP_FILES
 
-Options:
+weight a dictionary file using multiple regexp weightlists sequentially
+
+positional arguments:
+INPUT_FILE	the input compiled dictionary (a finite state transducer)
+OUTPUT_FILE	the weighted dictionary (a finite state transducer)
+WEIGHTED_REGEXP_FILES	the weighted weightlists in XEROX regexp format
+
+optional arguments:
     -h, --help:	show this help
 "
 while :; do
@@ -31,7 +34,7 @@ done
 
 FST=$1
 OUTPUT_FST=$2
-#TODO: Is there a better way for parsing the input?
+
 if [ $# -gt 2 ]; then
 	shift 2
 	WEIGHTED_REGEXP_FILES=$*
