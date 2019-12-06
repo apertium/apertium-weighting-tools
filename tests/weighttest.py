@@ -15,7 +15,7 @@ class WeightTest(BasicTest):
     expectedOutputs = itertools.repeat("")
 
     def compileTest(self, compiled_dix):
-        self.assertEqual(0, call(["../lttoolbox/lt-comp",
+        self.assertEqual(0, call(["lt-comp",
                                   self.compdir,
                                   self.compdix,
                                   compiled_dix],
@@ -27,11 +27,11 @@ class WeightTest(BasicTest):
 
         try:
             self.compileTest(compiled_dix)
-            self.assertEqual(0, call(["../scripts/lt-weight"] +
+            self.assertEqual(0, call(["../lt-weight"] +
                               [compiled_dix, weighted_dix] +
                               self.weightlists,
                               stdout=PIPE))
-            self.proc = Popen(["../lttoolbox/lt-proc"] +
+            self.proc = Popen(["lt-proc"] +
                                self.procflags +
                                [weighted_dix],
                               stdin=PIPE,

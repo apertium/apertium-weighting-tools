@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import unittest
 import tempfile
 import subprocess
@@ -8,7 +10,7 @@ class TestAnnotatedCorpusToWeightlist(unittest.TestCase):
 		temp_analysis_weightlist = Path(temp_dir, 'temp_analysis_weightlist')
 		temp_tag_weightlist = Path(temp_dir, 'temp_tag_weightlist')
 		temp_default_weightlist = Path(temp_dir, 'temp_default_weightlist')
-		
+
 		tagged_corpus = 'data/tagged-corpus'
 
 		input_dict = 'data/minimal-mono.dix'
