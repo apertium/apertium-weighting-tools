@@ -1,10 +1,11 @@
 #!/bin/sh
 
 usage="$(basename "$0"): generate a disambiguated weightlist using a word2vec model
-USAGE: $(basename "$0") [-h] corpus input_file output_weightlist
+USAGE: $(basename "$0") [-h] corpus corpus_w2v word2vec_model output_weightlist default_weightlist
 corpus	a raw corpus file
 corpus_w2v  a large raw corpus file for training the word2vec model
 input_file	the input compiled dictionary (a finite state transducer)
+word2vec_model	the name of the word2vec model
 output_weightlist	a weightlist for unambiguous words in corpus
 default_weightlist	a laplace smoothed weightlist for OOV words
 
@@ -42,13 +43,13 @@ DEFAULT_WEIGHTLIST=$6
 no_of_missing_args=0
 if [ ! -f "$CORPUS" ]
 then
-	printf "ERROR: corpus file \"%s\" doesn't exist\n" "$CORPUS" >&2
+	printf "ERROR: corpus_file \"%s\" doesn't exist\n" "$CORPUS" >&2
 	no_of_missing_args=$((no_of_missing_args + 1))
 fi
 
 if [ ! -f "$CORPUS_W2V" ]
 then
-    printf "ERROR: corpus file \"%s\" doesn't exist\n" "$CORPUS_W2V" >&2
+    printf "ERROR: corpus_w2v \"%s\" doesn't exist\n" "$CORPUS_W2V" >&2
     no_of_missing_args=$((no_of_missing_args + 1))
 fi
 
@@ -58,7 +59,11 @@ then
 	no_of_missing_args=$((no_of_missing_args + 1))
 fi
 
-# TODO: ADD A CHECK FOR THE WORD2VEC MODEL
+if [ -z "$WORD2VEC_MODEL" ]
+then
+	printf "ERROR: word2vec_model isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
 
 if [ -z "$OUTPUT_WEIGHTLIST" ]
 then
