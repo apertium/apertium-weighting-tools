@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+import math
+import argparse
+from collections import Counter
+from utils.sgt import simpleGoodTuringProbs
+from utils.utils import extract_analysis, generate_regex, extract_tag_from_analysis
+
+if __name__ == '__main__':
+	DESCRIPTION = '''generate a regex weightlist given an annotated corpus'''
+	EPILOG = '''If the three weightlists are used then the analyses will be prioritized according to:
+				The unigram counts of analyses found in the tagged corpus,
+				The number of times the tag of an unweighted analyses was found in the tagged corpus,
+				Laplace smoothed weight for remaining unweighted analyses.
+				'''
+	parser = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
+	parser.add_argument('TAGGED_CORPUS',
+						type=argparse.FileType('r'),
+						help='input tagged corpus')
+	parser.add_argument('ANALYSIS_WEIGHTLIST',
+						type=argparse.FileType('w'),
+						help='output weightlist for specific analyses')
+	parser.add_argument('DEFAULT_WEIGHTLIST',
+						type=argparse.FileType('w'),
+						help='output weightlist for OOV analyses')
+
+	args = parser.parse_args()
+	TAGGED_CORPUS = args.TAGGED_CORPUS
+	ANALYSIS_WEIGHTLIST_FILE = args.ANALYSIS_WEIGHTLIST
+	DEFAULT_WEIGHTLIST_FILE = args.DEFAULT_WEIGHTLIST
+
+	lines = TAGGED_CORPUS.readlines()
+	analyses = [extract_analysis(line.strip()) for line in lines]
+	# Find the counts of each analysis
+	regex_analyses = dict(Counter([generate_regex(analysis) for analysis in analyses if not analysis.startswith('*')]))
+
+	probs, p0 = simpleGoodTuringProbs(regex_analyses)
+	weighted_regex_analyses = ['{}::{}'.format(regex, -math.log(probs[regex]))
+							for regex in regex_analyses]
+
+	# TODO: Estimate the number of OOV words
+	NO_OF_UNKNOWN_SPECIES = len(probs)
+	ANALYSIS_WEIGHTLIST_FILE.write('\n'.join(weighted_regex_analyses))
+	DEFAULT_WEIGHTLIST_FILE.write('[?*]::{}'.format(-math.log(p0/NO_OF_UNKNOWN_SPECIES)))
