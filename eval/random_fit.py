@@ -29,12 +29,12 @@ if __name__ == '__main__':
 
 	temp_weightlist = Path(temp_dir, 'temp_weightlist')
 	default_weightlist = Path(temp_dir, 'temp_default_weightlist')
-	subprocess.run(['./unannotated-corpus-to-random-weightlist',
+	subprocess.run(['unannotated-corpus-to-random-weightlist',
 		apertium_bin, corpus, temp_weightlist, default_weightlist])
 
 	for input_file in sorted(os.listdir(input_directory)):
 		# Generate a bin file
-		subprocess.run(['./lt-weight',
+		subprocess.run(['lt-weight',
 						apertium_bin,
 						Path(output_directory, '{}.bin'.format(input_file)),
 						temp_weightlist,
