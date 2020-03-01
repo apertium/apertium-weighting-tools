@@ -1,0 +1,73 @@
+#! /bin/sh
+
+usage="TODO"
+while :; do
+    case $1 in
+        -h|-\?|--help)
+            echo "$usage"
+            exit
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -?*)
+            printf "WARN: Unknown option (ignored): %s\n" "$1" >&2
+            ;;
+        *)
+            break
+    esac
+
+    shift
+done
+
+FST=$1
+UNTAGGED_CORPUS=$2
+OUTPUT_WEIGHTLIST_FILE_NAME=$3
+DEFAULT_WEIGHTLIST_FILE_NAME=$4
+no_of_missing_args=0
+
+if [ ! -f "$FST" ]
+then
+	printf "ERROR: input_file \"%s\" doesn't exist\n" "$FST" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ ! -f "$UNTAGGED_CORPUS" ]
+then
+	printf "ERROR: corpus \"%s\" doesn't exist\n" "$UNTAGGED_CORPUS" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ -z "$OUTPUT_WEIGHTLIST_FILE_NAME" ]
+then
+	printf "ERROR: output_file isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ -z "$DEFAULT_WEIGHTLIST_FILE_NAME" ]
+then
+	printf "ERROR: default_weightlist isn't set\n" >&2
+	no_of_missing_args=$((no_of_missing_args + 1))
+fi
+
+if [ $no_of_missing_args -gt 0 ]
+then
+	echo "$usage"
+	exit
+fi
+
+TEMP_DIR=$(mktemp -d)
+TEMP_CORPUS_FILE="$TEMP_DIR/tagged_corpus"
+
+# TODO: How is awk using a seed?
+apertium-destxt "$UNTAGGED_CORPUS" |
+	lt-proc "$FST" |
+	apertium-cleanstream -n |
+	sed -e 's/^\^//' -e 's/\$$//'|
+    awk '{n=split($0,array,"/"); print "^"array[1]"/" array[2+int((n-1)*rand())]"$"}' > "$TEMP_CORPUS_FILE"
+
+# Estimate the unigram-based weightlist using the filtered analyses
+./annotated-corpus-to-weightlist-sgt "$TEMP_CORPUS_FILE" "$OUTPUT_WEIGHTLIST_FILE_NAME" "$DEFAULT_WEIGHTLIST_FILE_NAME"
+
+rm -rf "$TEMP_DIR"
