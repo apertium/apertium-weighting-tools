@@ -90,7 +90,7 @@ def simpleGoodTuringProbs(counts, confidenceLevel=1.96):
     assert(totalCounts == sum([r*n for r,n in countsOfCounts.items()]))
 
     # TODO: Is this default value of 10^-18 acceptable?
-    p0 = countsOfCounts.get(1, 1e-18) / totalCoun
+    p0 = countsOfCounts.get(1, 1e-18) / totalCounts
     print('p0 = %f' % p0)
 
     Z = __sgtZ(sortedCounts, countsOfCounts)
