@@ -44,7 +44,7 @@ if __name__ == '__main__':
 					f.write(fold_file.read())
 
 
-		subprocess.run([arg for arg in ['./annotated-corpus-to-weightlist',
+		subprocess.run([arg for arg in ['annotated-corpus-to-weightlist',
 			Path(input_directory, temp_input_file),
 			temp_analysis_weightlist,
 			'--tag_weightlist' if use_tags else None,
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 			temp_default_weightlist] if arg] )
 
 		# Generate a bin file
-		subprocess.run([arg for arg in ['./lt-weight',
+		subprocess.run([arg for arg in ['lt-weight',
 						apertium_bin,
 						Path(output_directory, '{}.bin'.format(input_file)),
 						temp_analysis_weightlist,
