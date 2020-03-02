@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
 	temp_weightlist = Path(temp_dir, 'temp_weightlist')
 	default_weightlist = Path(temp_dir, 'temp_default_weightlist')
-	subprocess.run(['unannotated-corpus-to-weightlist',
+	subprocess.run(['unannotated-corpus-to-weightlist-sgt',
 		apertium_bin, corpus, constraint_grammar, temp_weightlist, default_weightlist])
 
 	for input_file in sorted(os.listdir(input_directory)):

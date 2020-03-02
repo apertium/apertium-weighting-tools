@@ -85,6 +85,6 @@ apertium-destxt "$UNTAGGED_CORPUS" |
 	awk '{n=split($0,array,"/"); for(i=2;i<=n;i++) print "^"array[1]"/" array[i]"$"}' > "$TEMP_CORPUS_FILE"
 
 # Estimate the unigram-based weightlist using the filtered analyses
-annotated-corpus-to-weightlist "$TEMP_CORPUS_FILE" "$OUTPUT_WEIGHTLIST_FILE_NAME" --default_weightlist "$DEFAULT_WEIGHTLIST_FILE_NAME"
+annotated-corpus-to-weightlist-sgt "$TEMP_CORPUS_FILE" "$OUTPUT_WEIGHTLIST_FILE_NAME" "$DEFAULT_WEIGHTLIST_FILE_NAME"
 
 rm -rf "$TEMP_DIR"
