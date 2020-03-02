@@ -25,6 +25,6 @@ if __name__ == '__main__':
 
 	for input_file in sorted(os.listdir(input_directory)):
 		# Generate a bin file
-		subprocess.run(['./analysis-length-reweight',
+		subprocess.run(['analysis-length-reweight',
 						apertium_bin,
 						Path(output_directory, '{}.bin'.format(input_file))])

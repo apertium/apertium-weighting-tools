@@ -25,13 +25,13 @@ if __name__ == '__main__':
 	temp_dir = tempfile.mkdtemp()
 
 	temp_weightlist = Path(temp_dir, 'temp_weightlist')
-	subprocess.run(['./equal-weightlist', temp_weightlist])
-	
+	subprocess.run(['equal-weightlist', temp_weightlist])
+
 	# Generate a single bin and just copy it since
 	# the weighted bin doesn't depend on the training data
 	temp_weighted_bin = Path(temp_dir, 'temp_weighted_bin')
-	
-	subprocess.run(['./lt-weight',
+
+	subprocess.run(['lt-weight',
 					apertium_bin,
 					temp_weighted_bin,
 					temp_weightlist])
