@@ -47,13 +47,13 @@ if __name__ == '__main__':
 
 	# Train a word2vec model and generate the weightlist using the corpus file
 	if is_c_format_bin:
-		subprocess.run(['w2v-weightlist', '--is_c_format_bin',
+		subprocess.run(['w2v-weightlist-sgt', '--is_c_format_bin',
 			corpus, corpus_word2vec, apertium_bin, word2vec_model, temp_weightlist, default_weightlist])
 	elif is_wiki_dump:
-		subprocess.run(['w2v-weightlist', '--is_wiki_dump',
+		subprocess.run(['w2v-weightlist-sgt', '--is_wiki_dump',
 			'-size', size, '-window', window, corpus, corpus_word2vec, apertium_bin, word2vec_model, temp_weightlist, default_weightlist])
 	else:
-		subprocess.run(['w2v-weightlist', '-size', size, '-window', window,
+		subprocess.run(['w2v-weightlist-sgt', '-size', size, '-window', window,
 			corpus, corpus_word2vec, apertium_bin, word2vec_model, temp_weightlist, default_weightlist])
 
 	for input_file in sorted(os.listdir(input_directory)):

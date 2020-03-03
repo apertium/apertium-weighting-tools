@@ -131,4 +131,4 @@ apertium-destxt "$SIMILAR_WORD_FILE" | lt-proc "$INPUT_FST" | apertium-retxt > "
 CLEANED_WORDS="$TEMP_DIR/cleaned_words"
 apertium-cleanstream -n < "$ANALYZED_WORDS" > "$CLEANED_WORDS"
 
-w2v_generate_weights.py --words_file "$CLEANED_WORDS" --similar_file "$ANALYZED_SIMILAR_WORDS" --output_weightlist "$OUTPUT_WEIGHTLIST" --default_weightlist "$DEFAULT_WEIGHTLIST"
+w2v_generate_weights_sgt.py --words_file "$CLEANED_WORDS" --similar_file "$ANALYZED_SIMILAR_WORDS" --output_weightlist "$OUTPUT_WEIGHTLIST" --default_weightlist "$DEFAULT_WEIGHTLIST"

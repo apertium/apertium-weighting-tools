@@ -40,16 +40,17 @@ if __name__ == '__main__':
 						required=True,
 						help='The set of similar words for the words of the corpus, tab-delimited')
 	parser.add_argument('--word2vec_model', help='a pretrained word2vec model')
-	parser.add_argument('--use_google_model', action='store_true', help='use google news pretrained word2vec model')
+	parser.add_argument('--is_c_format_bin', action='store_true', help='use a wiki dump to train the model')
+
 	args = parser.parse_args()
 	corpus_file = args.corpus
 	output_words_file = args.output_words_file
 	output_similar_words_file = args.output_similar_words_file
 	word2vec_model = args.word2vec_model
-	use_google_model = args.use_google_model
-	if use_google_model:
-		import gensim.downloader as api
-		word2vec = api.load("word2vec-google-news-300")
+	is_c_format_bin = args.is_c_format_bin
+
+	if is_c_format_bin:
+		word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_model, binary=True)
 	else:
 		word2vec = gensim.models.word2vec.Word2Vec.load(word2vec_model)
 
