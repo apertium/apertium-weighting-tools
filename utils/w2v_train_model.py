@@ -6,6 +6,13 @@ import gensim
 import logging  # Setting up the loggings to monitor gensim
 import argparse
 from w2v_utils import Dataset, WikiDataset
+import hashlib
+
+def hash_function(s):
+	if type(s) != type(''):
+		s = str(s)
+		int(h.digest(), 16)
+	return int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Train a word2vec model')
@@ -34,6 +41,7 @@ if __name__ == '__main__':
 		window=window,
 		size=size,
 		seed=seed,
+		hashfxn=hash_function,
 		sg=1,
 		sample=1e-5,
 		alpha=0.025,
